@@ -1,0 +1,39 @@
+# =====================================================================
+# SECRETS — never commit these. If one slips in, rotate it immediately.
+# =====================================================================
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+auth.json
+
+# Dependencies (installed with composer on the server)
+/vendor
+/node_modules
+
+# Laravel runtime
+/storage/*.key
+/storage/app/private
+/storage/app/public
+/storage/framework/cache/*
+/storage/framework/sessions/*
+/storage/framework/testing/*
+/storage/framework/views/*
+/storage/logs/*
+!/storage/**/.gitkeep
+/bootstrap/cache/*
+!/bootstrap/cache/.gitkeep
+
+# Uploaded media — user content, not source code
+/public/media/*
+!/public/media/.gitkeep
+
+# Local
+.DS_Store
+Thumbs.db
+*.swp
+*.log
+.idea
+.vscode
+.phpunit.result.cache
