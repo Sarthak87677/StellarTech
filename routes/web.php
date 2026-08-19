@@ -5,6 +5,7 @@ use App\Http\Controllers\ApplicationReviewController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DevController;
 use App\Http\Controllers\PageController;
 use Illuminate\Support\Facades\Route;
 
@@ -74,6 +75,20 @@ Route::middleware(['auth', 'role:founder'])
     ->prefix('founder')->name('founder.')->group(function () {
         Route::post('/applications/{application}/decide',
             [ApplicationReviewController::class, 'decide'])->name('applications.decide');
+    });
+
+/*
+|----------------------------------------------------------------------
+| INTERNAL BUILD TOOLS — founder only
+|
+| Component previews used while building the OS shell. Gated by the same
+| server-side role middleware as everything else: being an internal page
+| is not a security control, the middleware is.
+|----------------------------------------------------------------------
+*/
+Route::middleware(['auth', 'role:founder'])
+    ->prefix('dev')->name('dev.')->group(function () {
+        Route::get('/motion', [DevController::class, 'motion'])->name('motion');
     });
 
 /*

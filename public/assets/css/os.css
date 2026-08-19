@@ -4,6 +4,13 @@
 
    REMEMBER: editing this file changes nothing on the live site until
    public/assets is copied across to public_html. Run ./deploy.sh.
+
+   MOTION PRINCIPLE
+   Nothing in this file loops at rest. Motion is one-shot and fires on a
+   state change - a streak going up, a notification arriving - then
+   stops. A permanently animating top bar is noise, not feedback.
+   The single exception is the at-risk streak pulse, which is a standing
+   state rather than an event, and is deliberately slow and low contrast.
    ===================================================================== */
 
 .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;
@@ -11,89 +18,159 @@
 
 /* =====================================================================
    STREAK FLAME
-   Reads user_streaks.current_streak. Renders an honest 0 when there is
-   no streak record at all — grey outline, no fill, no animation.
-   Flicker is CSS keyframes on the SVG paths. No GIF, no canvas.
+   The flame is the CONTAINER: the streak number sits inside it. Reads
+   user_streaks.current_streak. No record means an honest 0, not a
+   placeholder. Idle is completely still.
    ===================================================================== */
-.flame{position:relative;display:inline-flex;align-items:flex-end;justify-content:center;
-  width:34px;height:34px;flex-shrink:0;line-height:0;transition:opacity .4s ease}
-.flame svg{display:block;width:var(--flame-size,18px);height:auto;overflow:visible}
-.flame .flame-body,.flame .flame-core{transform-origin:50% 100%}
-.flame .flame-core{fill:rgba(255,255,255,.30)}
+.flame{position:relative;display:inline-flex;align-items:center;justify-content:center;
+  width:var(--flame-box,44px);height:var(--flame-box,44px);flex-shrink:0;
+  text-decoration:none;color:inherit;border-radius:10px;outline-offset:3px}
+.flame-art{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  transform-origin:50% 72%}
+.flame-art svg{display:block;width:var(--flame-size,34px);height:auto;overflow:visible}
 
-/* ---- tier 0 — no streak yet. Outline only. ---- */
-.flame--t0{--flame-size:18px}
-.flame--t0 .flame-body{fill:none;stroke:var(--ink-mute);stroke-width:1.7;
-  stroke-linejoin:round}
+/* the number — centred on the flame's widest mass, not its geometric middle */
+.flame-n{position:relative;z-index:2;font-family:var(--display);font-weight:700;
+  font-size:var(--flame-fs,12px);line-height:1;letter-spacing:-.03em;
+  font-variant-numeric:tabular-nums;color:var(--void);
+  transform:translateY(var(--flame-ny,6px));pointer-events:none}
+/* The bulb only has so much width. Long streaks step the digits down
+   rather than spilling over the edges of the flame. */
+.flame-n[data-len="2"]{font-size:calc(var(--flame-fs,14px) * .72);letter-spacing:-.05em}
+.flame-n[data-len="3"]{font-size:calc(var(--flame-fs,14px) * .55);letter-spacing:-.06em}
+.flame-n[data-len="4"]{font-size:calc(var(--flame-fs,14px) * .44);letter-spacing:-.07em}
+
+.flame .flame-core{fill:rgba(255,255,255,.28)}
+
+/* ---- tier 0 — no streak. Outline only, and the number goes light
+        because there is no fill behind it to read against. ---- */
+.flame--t0{--flame-box:44px;--flame-size:32px;--flame-fs:12px;--flame-ny:6px}
+.flame--t0 .flame-body{fill:none;stroke:var(--ink-mute);stroke-width:1.7;stroke-linejoin:round}
 .flame--t0 .flame-core{display:none}
+.flame--t0 .flame-n{color:var(--ink-mute)}
 
-/* ---- tier 1 — 1-2 days. Small, flat blue, no flicker yet. ---- */
-.flame--t1{--flame-size:15px}
+/* ---- tier 1 — 1-2 days ---- */
+.flame--t1{--flame-box:44px;--flame-size:32px;--flame-fs:12px;--flame-ny:6px}
 .flame--t1 .flame-body{fill:var(--blue)}
 
-/* ---- tier 2 — 3-6 days. Medium, blue -> cyan, gentle flicker. ---- */
-.flame--t2{--flame-size:18px}
+/* ---- tier 2 — 3-6 days. blue -> cyan ---- */
+.flame--t2{--flame-box:44px;--flame-size:34px;--flame-fs:13px;--flame-ny:6px}
 .flame--t2 .s1{stop-color:var(--blue)}
-.flame--t2 .s2{stop-color:var(--cyan)}
-.flame--t2 .flame-body{animation:flameSoft 2.6s ease-in-out infinite}
-.flame--t2 .flame-core{animation:flameCore 2.6s ease-in-out infinite}
+.flame--t2 .s2{stop-color:var(--blue)}
+.flame--t2 .s3{stop-color:var(--cyan)}
 
-/* ---- tier 3 — 7-20 days. Full, cyan -> gold, stronger flicker. ---- */
-.flame--t3{--flame-size:21px}
+/* ---- tier 3 — 7-20 days. Warm across the upper half, not just the tip:
+        the middle stop stays cyan so 45%-100% is a cyan -> gold ramp. ---- */
+.flame--t3{--flame-box:46px;--flame-size:40px;--flame-fs:14px;--flame-ny:7px}
 .flame--t3 .s1{stop-color:var(--cyan)}
-.flame--t3 .s2{stop-color:var(--gold)}
-.flame--t3 .flame-body{animation:flameStrong 1.5s ease-in-out infinite}
-.flame--t3 .flame-core{animation:flameCore 1.5s ease-in-out infinite}
+.flame--t3 .s2{stop-color:var(--cyan)}
+.flame--t3 .s3{stop-color:var(--gold)}
 
-/* ---- tier 4 — 21+ days. As tier 3, plus rising embers. ---- */
-.flame--t4{--flame-size:21px}
+/* ---- tier 4 — 21+. Visibly bigger, and warmer through the body: gold
+        arrives at the midpoint and the core is gold-tinted, not white. ---- */
+.flame--t4{--flame-box:54px;--flame-size:48px;--flame-fs:16px;--flame-ny:9px}
 .flame--t4 .s1{stop-color:var(--cyan)}
 .flame--t4 .s2{stop-color:var(--gold)}
-.flame--t4 .flame-body{animation:flameStrong 1.4s ease-in-out infinite}
-.flame--t4 .flame-core{animation:flameCore 1.4s ease-in-out infinite}
+.flame--t4 .s3{stop-color:#F8E9C2}
+.flame--t4 .flame-core{fill:rgba(255,226,164,.50)}
 
-/* embers — only tier 4 renders them */
-.flame-embers{position:absolute;inset:0;pointer-events:none;display:none}
-.flame--t4 .flame-embers{display:block}
-.flame-embers i{position:absolute;bottom:26%;left:50%;width:2px;height:2px;border-radius:50%;
-  background:var(--gold);opacity:0;animation:ember 2.8s ease-out infinite}
-.flame-embers i:nth-child(1){margin-left:-5px;animation-delay:0s}
-.flame-embers i:nth-child(2){margin-left:1px;animation-delay:.9s;width:1.5px;height:1.5px}
-.flame-embers i:nth-child(3){margin-left:5px;animation-delay:1.8s}
+/* ---- at risk — nothing logged today and past 18:00 on the MEMBER's
+        clock, so os.js sets it. Desaturates toward grey, pulses slowly. ---- */
+.flame.is-at-risk .flame-art{filter:saturate(.12) brightness(.85);
+  animation:flameRisk 3.2s ease-in-out infinite}
+.flame.is-at-risk .flame-n{color:var(--ink-mute)}
+@keyframes flameRisk{0%,100%{opacity:.45}50%{opacity:.75}}
 
-/* ---- at risk — nothing logged today and it is past 18:00 local.
-        Set by os.js, because "local" means the member's clock. ---- */
-.flame.is-at-risk{opacity:.4;animation:flameRisk 2.6s ease-in-out infinite}
+/* ---- celebration — ONE SHOT, only when the streak actually increased.
+        Class is added by os.js and removed on animationend. ---- */
+.flame.is-celebrating .flame-art{animation:flameCelebrate 700ms cubic-bezier(.34,1.56,.64,1)}
+@keyframes flameCelebrate{
+  0%  {transform:scale(1)}
+  30% {transform:scale(1.3)}
+  62% {transform:scale(.94)}
+  82% {transform:scale(1.05)}
+  100%{transform:scale(1)}
+}
 
-@keyframes flameSoft{
-  0%,100%{transform:scaleY(1)    scaleX(1)}
-  35%    {transform:scaleY(1.06) scaleX(.97)}
-  70%    {transform:scaleY(.97)  scaleX(1.03)}
-}
-@keyframes flameStrong{
-  0%,100%{transform:scaleY(1)    scaleX(1)    translateX(0)}
-  20%    {transform:scaleY(1.11) scaleX(.94)  translateX(-.4px)}
-  45%    {transform:scaleY(.95)  scaleX(1.05) translateX(.5px)}
-  72%    {transform:scaleY(1.07) scaleX(.97)  translateX(-.2px)}
-}
-@keyframes flameCore{
-  0%,100%{transform:scaleY(1)   scaleX(1);opacity:.30}
-  40%    {transform:scaleY(.88) scaleX(1.06);opacity:.46}
-}
+/* embers — burst once during a celebration, never at rest */
+.flame-embers{position:absolute;inset:0;pointer-events:none}
+.flame-embers i{position:absolute;bottom:24%;left:50%;width:3px;height:3px;border-radius:50%;
+  background:var(--gold);opacity:0}
+.flame.is-celebrating .flame-embers i{animation:ember 900ms ease-out}
+.flame-embers i:nth-child(1){margin-left:-9px;animation-delay:40ms}
+.flame-embers i:nth-child(2){margin-left:-3px;animation-delay:150ms;width:2px;height:2px}
+.flame-embers i:nth-child(3){margin-left:3px;animation-delay:90ms}
+.flame-embers i:nth-child(4){margin-left:9px;animation-delay:210ms;width:2px;height:2px}
+.flame-embers i:nth-child(5){margin-left:0;animation-delay:280ms}
 @keyframes ember{
-  0%  {opacity:0;transform:translateY(0) scale(.6)}
-  18% {opacity:.9}
-  100%{opacity:0;transform:translateY(-18px) scale(.2)}
+  0%  {opacity:0;transform:translate(0,0) scale(.5)}
+  20% {opacity:1}
+  100%{opacity:0;transform:translate(var(--ex,0),-26px) scale(.2)}
 }
-@keyframes flameRisk{
-  0%,100%{opacity:.4}
-  50%    {opacity:.62}
+.flame-embers i:nth-child(1){--ex:-6px} .flame-embers i:nth-child(2){--ex:-2px}
+.flame-embers i:nth-child(3){--ex:3px}  .flame-embers i:nth-child(4){--ex:7px}
+.flame-embers i:nth-child(5){--ex:0}
+
+/* ---- hover / focus card ---- */
+.os-tip{position:absolute;top:calc(100% + 10px);left:50%;transform:translate(-50%,-4px);
+  min-width:186px;padding:.7rem .8rem;border-radius:10px;background:rgba(6,10,22,.97);
+  border:1px solid var(--line-soft);box-shadow:0 14px 34px rgba(0,0,0,.5);
+  opacity:0;visibility:hidden;transition:opacity .16s ease,transform .16s ease;
+  z-index:80;pointer-events:none;text-align:left}
+.flame:hover .os-tip,.flame:focus-visible .os-tip{opacity:1;visibility:visible;
+  transform:translate(-50%,0)}
+.os-tip dl{margin:0;display:grid;grid-template-columns:1fr auto;gap:.32rem .8rem}
+.os-tip dt{font-family:var(--mono);font-size:.58rem;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--ink-mute)}
+.os-tip dd{margin:0;font-size:.78rem;color:var(--ink);text-align:right;
+  font-variant-numeric:tabular-nums}
+.os-tip .next{margin:.55rem 0 0;padding-top:.5rem;border-top:1px solid var(--line-soft);
+  font-size:.72rem;color:var(--ink-soft)}
+
+/* =====================================================================
+   NOTIFICATION BELL
+   Still at rest. Shakes once when a notification arrives; the badge
+   pops once when the count goes up. No badge at all when the count is 0.
+   ===================================================================== */
+.bell{position:relative;display:inline-flex;align-items:center;justify-content:center;
+  width:40px;height:40px;border-radius:10px;background:transparent;border:1px solid transparent;
+  color:var(--ink-soft);cursor:pointer;padding:0;outline-offset:3px}
+.bell:hover{color:var(--ink);background:rgba(77,168,255,.08);border-color:var(--line-soft)}
+.bell svg{width:19px;height:19px;transform-origin:50% 16%}
+.bell.is-ringing svg{animation:bellShake 700ms cubic-bezier(.36,.07,.19,.97)}
+@keyframes bellShake{
+  0%  {transform:rotate(0)}
+  10% {transform:rotate(-15deg)}
+  22% {transform:rotate(15deg)}
+  36% {transform:rotate(-10deg)}
+  50% {transform:rotate(9deg)}
+  64% {transform:rotate(-5deg)}
+  78% {transform:rotate(3deg)}
+  90% {transform:rotate(-1.5deg)}
+  100%{transform:rotate(0)}
+}
+.bell-badge{position:absolute;top:3px;right:2px;min-width:16px;height:16px;padding:0 4px;
+  border-radius:9px;background:var(--blue);color:var(--void);
+  font-family:var(--mono);font-size:.56rem;font-weight:500;line-height:16px;text-align:center;
+  border:2px solid var(--deep);font-variant-numeric:tabular-nums}
+.bell-badge[hidden]{display:none}
+.bell.is-counting .bell-badge{animation:badgePop 420ms cubic-bezier(.34,1.56,.64,1)}
+@keyframes badgePop{
+  0%  {transform:scale(0)}
+  55% {transform:scale(1.28)}
+  100%{transform:scale(1)}
 }
 
-/* Motion off: the flame still renders at the right size and colour,
-   it simply stops moving. Tier is still legible at a glance. */
+/* =====================================================================
+   MOTION OFF
+   State still updates - the number changes, the badge appears - but
+   nothing moves. Sizes, colours and tiers stay exactly as they are.
+   ===================================================================== */
 @media(prefers-reduced-motion:reduce){
-  .flame,.flame .flame-body,.flame .flame-core,.flame-embers i{animation:none!important}
-  .flame--t4 .flame-embers{display:none}
-  .flame.is-at-risk{opacity:.4}
+  .flame-art,.flame.is-celebrating .flame-art,.flame.is-at-risk .flame-art,
+  .flame-embers i,.flame.is-celebrating .flame-embers i,
+  .bell svg,.bell.is-ringing svg,.bell.is-counting .bell-badge{animation:none!important}
+  .flame.is-celebrating .flame-art{transform:none}
+  .flame.is-at-risk .flame-art{opacity:.5}
+  .os-tip{transition:none}
 }
