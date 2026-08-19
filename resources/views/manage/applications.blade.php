@@ -31,7 +31,7 @@
         <thead>
           <tr>
             <th>Applicant</th><th>Interest</th><th>Why they applied</th>
-            <th>Received</th><th>Decision</th>
+            <th>Received</th><th class="stick-end">Decision</th>
           </tr>
         </thead>
         <tbody>
@@ -49,11 +49,11 @@
               @endif
             </td>
             <td>{{ ucfirst($a->interest_area) }}</td>
-            <td style="max-width:340px">{{ Str::limit($a->motivation, 220) }}</td>
+            <td class="cell-wrap" style="max-width:340px">{{ Str::limit($a->motivation, 220) }}</td>
             <td style="white-space:nowrap;font-family:var(--mono);font-size:.75rem">
               {{ $a->created_at->format('j M Y') }}
             </td>
-            <td style="min-width:230px">
+            <td class="stick-end" style="min-width:230px">
               @if ($a->status === 'pending')
                 @can('decide-applications')
                 <form method="POST" action="{{ route('founder.applications.decide', $a) }}">

@@ -78,6 +78,21 @@
   color:var(--ink-mute);text-align:left;padding:.7rem .8rem;border-bottom:1px solid var(--line)}
 .tbl td{padding:.85rem .8rem;border-bottom:1px solid var(--line-soft);vertical-align:top}
 .tbl tr:hover td{background:rgba(16,26,54,.4)}
+
+/* Long unbroken input — a pasted URL, or a 300-character "word" — used to
+   stretch the table until the decision controls were pushed off-screen.
+   break-word breaks over-long words; anywhere lets the browser break
+   mid-token when there is no other opportunity. */
+.tbl td.cell-wrap{max-width:340px;word-break:break-word;overflow-wrap:anywhere}
+
+/* Decision column stays pinned to the right edge while the table scrolls
+   sideways, so Approve / Waitlist / Decline are always reachable.
+   A sticky cell must be opaque or the scrolling rows show through it, and
+   the hover rule below needs the extra class to out-rank .tbl tr:hover td. */
+.tbl th.stick-end,
+.tbl td.stick-end{position:sticky;right:0;z-index:2;background:var(--deep);
+  border-left:1px solid var(--line-soft)}
+.tbl tr:hover td.stick-end{background:var(--navy)}
 .tabs{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1.4rem}
 .tab{font-family:var(--mono);font-size:.66rem;letter-spacing:.13em;text-transform:uppercase;
   padding:.5rem .9rem;border-radius:6px;border:1px solid var(--line-soft);color:var(--ink-soft)}
