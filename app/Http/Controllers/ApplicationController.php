@@ -71,7 +71,7 @@ class ApplicationController extends Controller
         // Mail failures must not lose the application — it is already saved.
         try {
             Mail::to($application->email)->send(new ApplicationReceived($application));
-            Mail::to(config('mail.contact_to', config('mail.from.address')))
+            Mail::to(config('mail.founder_address'))
                 ->send(new ApplicationReceived($application, forFounder: true));
         } catch (\Throwable $e) {
             report($e);

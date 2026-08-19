@@ -29,7 +29,8 @@ class ContactController extends Controller
         ]);
 
         try {
-            Mail::to(config('mail.contact_to', config('mail.from.address')))
+            // Contact form is a founder alert -> director@
+            Mail::to(config('mail.founder_address'))
                 ->send(new ContactMessage($data));
         } catch (\Throwable $e) {
             report($e);

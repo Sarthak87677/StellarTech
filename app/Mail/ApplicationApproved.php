@@ -5,6 +5,7 @@ namespace App\Mail;
 use App\Models\Application;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
+use Illuminate\Mail\Mailables\Address;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
@@ -25,7 +26,11 @@ class ApplicationApproved extends Mailable
 
     public function envelope(): Envelope
     {
-        return new Envelope(subject: 'Your StellarTech Explorers Club account is ready');
+        // Member-facing -> sent from the system mailbox (connect@).
+        return new Envelope(
+            from: new Address(config('mail.system_address'), config('mail.from.name')),
+            subject: 'Your StellarTech Explorers Club account is ready',
+        );
     }
 
     public function content(): Content

@@ -5,6 +5,7 @@ namespace App\Mail;
 use App\Models\Application;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
+use Illuminate\Mail\Mailables\Address;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
@@ -20,7 +21,10 @@ class ApplicationReceived extends Mailable
 
     public function envelope(): Envelope
     {
+        // Both variants are SENT by the system mailbox (connect@). The
+        // founder variant is merely addressed TO director@ by the caller.
         return new Envelope(
+            from: new Address(config('mail.system_address'), config('mail.from.name')),
             subject: $this->forFounder
                 ? 'New membership application — ' . $this->application->name
                 : 'We received your application — StellarTech Explorers Club',

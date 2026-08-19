@@ -152,6 +152,9 @@ DB_PASSWORD=          ← the password from Step 1
 
 MAIL_PASSWORD=        ← your director@ mailbox password
 
+MAIL_SYSTEM_ADDRESS=  ← leave EMPTY until the connect@ mailbox exists
+MAIL_FOUNDER_ADDRESS=director@stellartechexplorers.com
+
 FOUNDER_NAME=         ← your name
 FOUNDER_EMAIL=director@stellartechexplorers.com
 FOUNDER_PASSWORD=     ← invent one, at least 12 characters
@@ -236,8 +239,53 @@ then in SSH: `composer dump-autoload`
 
 **`config/mail.php`** — add near the bottom, inside the main array:
 ```php
-'contact_to' => env('MAIL_CONTACT_TO', env('MAIL_FROM_ADDRESS')),
+/*
+ * The two club mailboxes.
+ *
+ *   system_address   connect@   SENDS everything to applicants and members
+ *   founder_address  director@  RECEIVES founder alerts only
+ *
+ * These use ?: rather than an env() default on purpose. env('X', 'fallback')
+ * only falls back when the line is MISSING from .env; a line that is present
+ * but empty (MAIL_SYSTEM_ADDRESS=) returns an empty string and would win.
+ * ?: falls back on empty too, so mail keeps working before connect@ exists.
+ */
+'system_address' => env('MAIL_SYSTEM_ADDRESS')
+    ?: env('MAIL_FOUNDER_ADDRESS')
+    ?: env('MAIL_CONTACT_TO')
+    ?: env('MAIL_FROM_ADDRESS'),
+
+'founder_address' => env('MAIL_FOUNDER_ADDRESS')
+    ?: env('MAIL_CONTACT_TO')
+    ?: env('MAIL_FROM_ADDRESS'),
+
+// Old name for founder_address. Keep it so nothing that still reads
+// config('mail.contact_to') breaks.
+'contact_to' => env('MAIL_CONTACT_TO')
+    ?: env('MAIL_FOUNDER_ADDRESS')
+    ?: env('MAIL_FROM_ADDRESS'),
 ```
+
+If `config/mail.php` already has a `'contact_to'` line from an earlier setup,
+replace that single line with the whole block above.
+
+### Switching on the connect@ mailbox later
+
+Until the connect@ mailbox exists, leave `MAIL_SYSTEM_ADDRESS` empty in `.env`.
+Every email falls back to director@ and nothing breaks.
+
+When you have created connect@ in hPanel → **Emails → Email Accounts**:
+
+1. Set `MAIL_SYSTEM_ADDRESS=connect@stellartechexplorers.com`
+2. Set `MAIL_USERNAME=connect@stellartechexplorers.com`
+3. Set `MAIL_PASSWORD` to the connect@ mailbox password
+4. Set `MAIL_FROM_ADDRESS=connect@stellartechexplorers.com`
+5. Leave `MAIL_FOUNDER_ADDRESS=director@stellartechexplorers.com`
+6. Run `php artisan optimize:clear && php artisan optimize`
+
+Steps 2–4 matter. Hostinger's SMTP will only let you send mail **from the mailbox
+you logged in as**. If you set the system address to connect@ but stay logged in
+as director@, mail is rejected or silently rewritten back to director@.
 
 **`config/services.php`** — add inside the array:
 ```php
