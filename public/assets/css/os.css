@@ -1,0 +1,99 @@
+/* =====================================================================
+   StellarTech OS — signed-in shell.
+   Plain CSS, no build step. Design tokens come from app.css.
+
+   REMEMBER: editing this file changes nothing on the live site until
+   public/assets is copied across to public_html. Run ./deploy.sh.
+   ===================================================================== */
+
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;
+  clip:rect(0 0 0 0);white-space:nowrap;border:0}
+
+/* =====================================================================
+   STREAK FLAME
+   Reads user_streaks.current_streak. Renders an honest 0 when there is
+   no streak record at all — grey outline, no fill, no animation.
+   Flicker is CSS keyframes on the SVG paths. No GIF, no canvas.
+   ===================================================================== */
+.flame{position:relative;display:inline-flex;align-items:flex-end;justify-content:center;
+  width:34px;height:34px;flex-shrink:0;line-height:0;transition:opacity .4s ease}
+.flame svg{display:block;width:var(--flame-size,18px);height:auto;overflow:visible}
+.flame .flame-body,.flame .flame-core{transform-origin:50% 100%}
+.flame .flame-core{fill:rgba(255,255,255,.30)}
+
+/* ---- tier 0 — no streak yet. Outline only. ---- */
+.flame--t0{--flame-size:18px}
+.flame--t0 .flame-body{fill:none;stroke:var(--ink-mute);stroke-width:1.7;
+  stroke-linejoin:round}
+.flame--t0 .flame-core{display:none}
+
+/* ---- tier 1 — 1-2 days. Small, flat blue, no flicker yet. ---- */
+.flame--t1{--flame-size:15px}
+.flame--t1 .flame-body{fill:var(--blue)}
+
+/* ---- tier 2 — 3-6 days. Medium, blue -> cyan, gentle flicker. ---- */
+.flame--t2{--flame-size:18px}
+.flame--t2 .s1{stop-color:var(--blue)}
+.flame--t2 .s2{stop-color:var(--cyan)}
+.flame--t2 .flame-body{animation:flameSoft 2.6s ease-in-out infinite}
+.flame--t2 .flame-core{animation:flameCore 2.6s ease-in-out infinite}
+
+/* ---- tier 3 — 7-20 days. Full, cyan -> gold, stronger flicker. ---- */
+.flame--t3{--flame-size:21px}
+.flame--t3 .s1{stop-color:var(--cyan)}
+.flame--t3 .s2{stop-color:var(--gold)}
+.flame--t3 .flame-body{animation:flameStrong 1.5s ease-in-out infinite}
+.flame--t3 .flame-core{animation:flameCore 1.5s ease-in-out infinite}
+
+/* ---- tier 4 — 21+ days. As tier 3, plus rising embers. ---- */
+.flame--t4{--flame-size:21px}
+.flame--t4 .s1{stop-color:var(--cyan)}
+.flame--t4 .s2{stop-color:var(--gold)}
+.flame--t4 .flame-body{animation:flameStrong 1.4s ease-in-out infinite}
+.flame--t4 .flame-core{animation:flameCore 1.4s ease-in-out infinite}
+
+/* embers — only tier 4 renders them */
+.flame-embers{position:absolute;inset:0;pointer-events:none;display:none}
+.flame--t4 .flame-embers{display:block}
+.flame-embers i{position:absolute;bottom:26%;left:50%;width:2px;height:2px;border-radius:50%;
+  background:var(--gold);opacity:0;animation:ember 2.8s ease-out infinite}
+.flame-embers i:nth-child(1){margin-left:-5px;animation-delay:0s}
+.flame-embers i:nth-child(2){margin-left:1px;animation-delay:.9s;width:1.5px;height:1.5px}
+.flame-embers i:nth-child(3){margin-left:5px;animation-delay:1.8s}
+
+/* ---- at risk — nothing logged today and it is past 18:00 local.
+        Set by os.js, because "local" means the member's clock. ---- */
+.flame.is-at-risk{opacity:.4;animation:flameRisk 2.6s ease-in-out infinite}
+
+@keyframes flameSoft{
+  0%,100%{transform:scaleY(1)    scaleX(1)}
+  35%    {transform:scaleY(1.06) scaleX(.97)}
+  70%    {transform:scaleY(.97)  scaleX(1.03)}
+}
+@keyframes flameStrong{
+  0%,100%{transform:scaleY(1)    scaleX(1)    translateX(0)}
+  20%    {transform:scaleY(1.11) scaleX(.94)  translateX(-.4px)}
+  45%    {transform:scaleY(.95)  scaleX(1.05) translateX(.5px)}
+  72%    {transform:scaleY(1.07) scaleX(.97)  translateX(-.2px)}
+}
+@keyframes flameCore{
+  0%,100%{transform:scaleY(1)   scaleX(1);opacity:.30}
+  40%    {transform:scaleY(.88) scaleX(1.06);opacity:.46}
+}
+@keyframes ember{
+  0%  {opacity:0;transform:translateY(0) scale(.6)}
+  18% {opacity:.9}
+  100%{opacity:0;transform:translateY(-18px) scale(.2)}
+}
+@keyframes flameRisk{
+  0%,100%{opacity:.4}
+  50%    {opacity:.62}
+}
+
+/* Motion off: the flame still renders at the right size and colour,
+   it simply stops moving. Tier is still legible at a glance. */
+@media(prefers-reduced-motion:reduce){
+  .flame,.flame .flame-body,.flame .flame-core,.flame-embers i{animation:none!important}
+  .flame--t4 .flame-embers{display:none}
+  .flame.is-at-risk{opacity:.4}
+}
